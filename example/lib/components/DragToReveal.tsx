@@ -21,7 +21,6 @@ export type DragToRevealProps = {
   readonly value: boolean;
   readonly onChange: (value: boolean) => void;
   readonly duration: number;
-  readonly minDuration: number;
   readonly renderChildren: ({ open: boolean }) => JSX.Element;
 };
 
@@ -39,8 +38,7 @@ function DragToReveal({
   origin,
   value,
   onChange,
-  duration: totalDuration,
-  minDuration,
+  duration,
   renderChildren,
 }): JSX.Element {
   const [animDrag] = useState(() => new Animated.ValueXY({
@@ -52,21 +50,20 @@ function DragToReveal({
     const toValue = open ? revealRadius : 0;
     const easing = open ? Easing.in : Easing.in;
     const target = open ? revealRadius : radius;
-    const h = Math.sqrt(Math.pow(animDrag.x.__getValue(), 2) + Math.pow(animDrag.y.__getValue(), 2));
+    animDrag.flattenOffset();
+    const { x, y } = animDrag;
+    const h = Math.sqrt(Math.pow(x.__getValue(), 2) + Math.pow(y.__getValue(), 2));
     const md = h * 0.5 / target;
     const delta = Math.abs(md);
-    const duration = h > revealRadius ? totalDuration * 1.2 : totalDuration;
-    animDrag.flattenOffset();
     Animated.parallel([
-      Animated.timing(animDrag.x, { toValue, easing, duration, useNativeDriver: false }),
-      Animated.timing(animDrag.y, { toValue, easing, duration, useNativeDriver: false }),
+      Animated.timing(x, { toValue, easing, duration, useNativeDriver: false }),
+      Animated.timing(y, { toValue, easing, duration, useNativeDriver: false }),
     ]).start();
   }, [
     animDrag,
     revealRadius,
     radius,
-    totalDuration,
-    minDuration,
+    duration,
   ]);
 
   useEffect(() => {
@@ -174,7 +171,6 @@ DragToReveal.propTypes = {
   value: PropTypes.bool,
   onChange: PropTypes.func,
   duration: PropTypes.number,
-  minDuration: PropTypes.number,
   renderChildren: PropTypes.func,
 };
 
@@ -186,7 +182,6 @@ DragToReveal.defaultProps = {
   value: false,
   onChange: () => null,
   duration: 200,
-  minDuration: 120,
   renderChildren: () => null,
 };
 
