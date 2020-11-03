@@ -7,11 +7,18 @@ export default function App() {
   return (
     <View style={StyleSheet.absoluteFill}>
       <DragToReveal
-        origin={{
-          x: 100,
-          y: 100,
-        }}
-      />
+        radius={100}
+        origin={{ x: 0, y: 0 }}
+      >
+        <View
+          style={{
+            borderWidth: 1,
+            width: 200,
+            height: 200,
+            backgroundColor: "orange",
+          }}
+        />
+      </DragToReveal>
     </View>
   );
 }

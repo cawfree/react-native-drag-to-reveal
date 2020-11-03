@@ -9,6 +9,7 @@ export type DragToRevealProps = {
     readonly x: number;
     readonly y: number;
   };
+  readonly children: JSX.Element;
 };
 
 const styles = StyleSheet.create({
@@ -23,11 +24,13 @@ function DragToReveal({
   style,
   radius,
   origin,
+  children,
 }): JSX.Element {
   const [animDrag] = useState(() => new Animated.ValueXY({
     x: 0,
     y: 0,
   }));
+  const [animDistance] = useState(() => new Animated.Value(0));
   const [layout, setLayout] = useState(null);
   const onRelease = useCallback(() => {
     animDrag.extractOffset();
@@ -36,6 +39,7 @@ function DragToReveal({
     onStartShouldSetPanResponder: e => true,
     onPanResponderMove: (e, gesture) => {
       const { x, y } = animDrag.__getValue();
+      animDistance.setValue(2 * Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
       return Animated.event([null, {
         dx: animDrag.x,
         dy: animDrag.y,
@@ -49,6 +53,9 @@ function DragToReveal({
     ({ nativeEvent: { layout } }) => setLayout(layout),
     [setLayout]
   );
+  const rootRadius = Animated.add(animDistance, radius);
+  const renderRadius = Animated.add(animDistance, radius * 2);
+  const animOffset = Animated.multiply(renderRadius, -0.5);
   return (
     <Animated.View
       style={[
@@ -63,14 +70,14 @@ function DragToReveal({
           styles.noOverflow,
           {
             transform: [
-              { translateX: Animated.add(animDrag.x, origin.x) },
-              { translateY: Animated.add(animDrag.y, origin.y) },
+              { translateX: Animated.add(animOffset, origin.x) },
+              { translateY: Animated.add(animOffset, origin.y) },
             ],
           },
           {
-            width: radius * 2,
-            height: radius * 2,
-            borderRadius: radius,
+            width: renderRadius,
+            height: renderRadius,
+            borderRadius: rootRadius,
           },
           { backgroundColor: "red" },
         ]}
@@ -80,19 +87,14 @@ function DragToReveal({
             style={{
               ...layout,
               transform: [
-                { translateX: Animated.multiply(animDrag.x, -1) },
-                { translateY: Animated.multiply(animDrag.y, -1) },
+                { translateX: Animated.multiply(animOffset, -1) },
+                { translateY: Animated.multiply(animOffset, -1) },
+                { translateX: -origin.x },
+                { translateY: -origin.y },
               ],
             }}
-          >
-            <Animated.View
-              style={{
-                width: 500,
-                height: 500,
-                backgroundColor: "purple",
-              }}
-            />
-          </Animated.View>
+            children={children}
+          />
         )}
       </Animated.View>
     </Animated.View>
