@@ -24,6 +24,15 @@ export type DragToRevealProps = {
   readonly renderChildren: ({ open: boolean }) => JSX.Element;
 };
 
+// https://stackoverflow.com/a/63759194/1701465
+function abs(a) {
+  const b = Animated.multiply(a, -1);
+  const clampedA = Animated.diffClamp(a, 0, Number.MAX_SAFE_INTEGER);
+  const clampedB = Animated.diffClamp(b, 0, Number.MAX_SAFE_INTEGER);
+
+  return Animated.add(clampedA, clampedB);
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -66,16 +75,19 @@ function DragToReveal({
     duration,
   ]);
 
+  const animDistance = Animated.add(
+    Animated.multiply(animDrag.x, 2.0),
+    Animated.multiply(animDrag.y, 2.0),
+  );
+
   useEffect(() => {
     shouldAnimateToValue(!!value);
   }, [value]);
 
   const shouldBeOpen = useCallback(() => {
-    return !!layout && (() => {
-      const { x, y } = animDrag.__getValue();
-      return Math.min(x, y) > radius;
-    })();
-  }, [animDrag, layout, radius, value]);
+    const x = abs(animDistance).__getValue();
+    return value ? x > revealRadius * 4 : x > revealRadius;
+  }, [animDistance, layout, radius, value]);
 
   const onRelease = useCallback(({ nativeEvent: { pageX, pageY } }) => {
     const shouldOpen = shouldBeOpen();
@@ -88,13 +100,7 @@ function DragToReveal({
   const onLayout = useCallback(
     ({ nativeEvent: { layout } }) => setLayout(layout),
     [setLayout]
-  );
-
-  // XXX: This is certainly not a square root. :)
-  const animDistance = Animated.add(
-    Animated.multiply(animDrag.x, 2.8),
-    Animated.multiply(animDrag.y, 2.8),
-  );
+  ); 
 
   const clampedDistance = Animated.diffClamp(animDistance, radius, Number.MAX_SAFE_INTEGER);
   const rootRadius = Animated.add(clampedDistance, radius);
@@ -136,7 +142,7 @@ function DragToReveal({
           {
             width: renderRadius,
             height: renderRadius,
-            borderRadius: rootRadius,
+            borderRadius: abs(rootRadius),
           },
         ]}
       >

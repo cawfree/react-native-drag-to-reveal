@@ -47,7 +47,7 @@ export default function App() {
         radius={100}
         value={value}
         onChange={onChange}
-        origin={{ x: 0, y: 0 }}
+        origin={{ x: width, y: 0 }}
         renderChildren={renderChildren}
       />
     </View>
