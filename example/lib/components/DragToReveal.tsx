@@ -30,7 +30,6 @@ function DragToReveal({
     x: 0,
     y: 0,
   }));
-  const [animDistance] = useState(() => new Animated.Value(0));
   const [layout, setLayout] = useState(null);
   const onRelease = useCallback(() => {
     animDrag.extractOffset();
@@ -39,12 +38,10 @@ function DragToReveal({
     onStartShouldSetPanResponder: e => true,
     onPanResponderMove: (e, gesture) => {
       const { x, y } = animDrag.__getValue();
-      animDistance.setValue(2 * Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
       return Animated.event([null, {
         dx: animDrag.x,
         dy: animDrag.y,
       }])(e, gesture);
-      return true;
     },
     onPanResponderRelease: onRelease,
     onPanResponderTerminate: onRelease,
@@ -53,8 +50,17 @@ function DragToReveal({
     ({ nativeEvent: { layout } }) => setLayout(layout),
     [setLayout]
   );
-  const rootRadius = Animated.add(animDistance, radius);
-  const renderRadius = Animated.add(animDistance, radius * 2);
+
+  // XXX: This is certainly not a square root. :)
+  const animDistance = Animated.add(
+    Animated.multiply(animDrag.x, 2),
+    Animated.multiply(animDrag.y, 2),
+  );
+
+  const clampedDistance = Animated.diffClamp(animDistance, radius, Number.MAX_SAFE_INTEGER);
+
+  const rootRadius = Animated.add(clampedDistance, radius);
+  const renderRadius = Animated.add(clampedDistance, radius * 2);
   const animOffset = Animated.multiply(renderRadius, -0.5);
   return (
     <Animated.View
