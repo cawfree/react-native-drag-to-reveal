@@ -22,7 +22,6 @@ export type DragToRevealProps = {
   readonly onChange: (value: boolean) => void;
   readonly duration: number;
   readonly minDuration: number;
-  readonly useNativeDriver: number;
   readonly renderChildren: ({ open: boolean }) => JSX.Element;
 };
 
@@ -42,7 +41,6 @@ function DragToReveal({
   onChange,
   duration: totalDuration,
   minDuration,
-  useNativeDriver,
   renderChildren,
 }): JSX.Element {
   const [animDrag] = useState(() => new Animated.ValueXY({
@@ -60,8 +58,8 @@ function DragToReveal({
     const duration = h > revealRadius ? totalDuration * 1.2 : totalDuration;
     animDrag.flattenOffset();
     Animated.parallel([
-      Animated.timing(animDrag.x, { toValue, easing, duration, useNativeDriver }),
-      Animated.timing(animDrag.y, { toValue, easing, duration, useNativeDriver }),
+      Animated.timing(animDrag.x, { toValue, easing, duration, useNativeDriver: false }),
+      Animated.timing(animDrag.y, { toValue, easing, duration, useNativeDriver: false }),
     ]).start();
   }, [
     animDrag,
@@ -69,7 +67,6 @@ function DragToReveal({
     radius,
     totalDuration,
     minDuration,
-    useNativeDriver,
   ]);
 
   useEffect(() => {
@@ -78,12 +75,10 @@ function DragToReveal({
 
   const shouldBeOpen = useCallback(() => {
     return !!layout && (() => {
-      const { width, height } = layout;
       const { x, y } = animDrag.__getValue();
-      const abs = Math.min(x, y);
-      return open ? abs > radius : abs < radius;
+      return Math.min(x, y) > radius;
     })();
-  }, [animDrag, layout, radius, open]);
+  }, [animDrag, layout, radius, value]);
 
   const onRelease = useCallback(({ nativeEvent: { pageX, pageY } }) => {
     const shouldOpen = shouldBeOpen();
@@ -128,7 +123,7 @@ function DragToReveal({
             return Animated.event([null, {
               dx: animDrag.x,
               dy: animDrag.y,
-            }])(e, gesture);
+            }], { useNativeDriver: false })(e, gesture);
           },
           onPanResponderRelease: onRelease,
           onPanResponderTerminate: onRelease,
@@ -180,7 +175,6 @@ DragToReveal.propTypes = {
   onChange: PropTypes.func,
   duration: PropTypes.number,
   minDuration: PropTypes.number,
-  useNativeDriver: PropTypes.bool,
   renderChildren: PropTypes.func,
 };
 
@@ -193,7 +187,6 @@ DragToReveal.defaultProps = {
   onChange: () => null,
   duration: 200,
   minDuration: 120,
-  useNativeDriver: Platform.OS !== "web",
   renderChildren: () => null,
 };
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import Animation from "react-native-lottie";
 import { useWindowDimensions } from "react-native-use-dimensions";
 
@@ -10,19 +10,24 @@ import Office from "./assets/office.json";
 
 export default function App() {
   const { width, height } = useWindowDimensions();
-  const [value, onChange] = useState(false);
+  const [value, onChange] = useState<boolean>(false);
+  const [absoluteFill] = useState<ViewStyle>(() => ({
+    height,
+    overflow: "hidden",
+    position: "absolute",
+    width,
+  }));
   const renderChildren = useCallback(({ open }) => (
     <View
       style={{
-        width,
-        height,
+        ...absoluteFill,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#508AA3",
       }}
     >
       <Animation
-        style={{ width, height  }}
+        style={absoluteFill}
         source={Desk}
         autoPlay
         loop
@@ -30,16 +35,16 @@ export default function App() {
     </View>
   ), []);
   return (
-    <View style={{ position: "absolute", width, height, overflow: "hidden" }}>
+    <View style={absoluteFill}>
       <Animation
-        style={{ position: "absolute", width, height  }}
+        style={absoluteFill}
         source={Office}
         autoPlay
         loop
       />
       <DragToReveal
-        style={{ position: "absolute", width, height  }}
-        radius={10}
+        style={absoluteFill}
+        radius={100}
         value={value}
         onChange={onChange}
         origin={{ x: 0, y: 0 }}
