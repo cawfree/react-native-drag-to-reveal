@@ -4561,6 +4561,9 @@ react-is@^16.12.0, react-is@^16.8.1, react-is@^16.8.4:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
 
+react-native-drag-to-reveal@../:
+  version "0.0.1-alpha.0"
+
 react-native-lottie@^0.0.1-alpha.2:
   version "0.0.1-alpha.2"
   resolved "https://registry.yarnpkg.com/react-native-lottie/-/react-native-lottie-0.0.1-alpha.2.tgz#d14b1e51ab391b881918ee2a2a4f66b1b6d4df4c"
