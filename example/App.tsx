@@ -21,12 +21,14 @@ export default function App() {
   const radius = 100;
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Animation
-        source={Desk}
-        style={StyleSheet.absoluteFill}
-        loop
-        autoPlay
-      />
+      <TouchableOpacity style={StyleSheet.absoluteFill} onPress={console.warn}>
+        <Animation
+          source={Desk}
+          style={StyleSheet.absoluteFill}
+          loop
+          autoPlay
+        />
+      </TouchableOpacity>
       <DragToReveal
         origin={{
           x: -radius,

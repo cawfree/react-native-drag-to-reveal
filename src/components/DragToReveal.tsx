@@ -42,6 +42,7 @@ function DragToReveal({
   open,
   onChange,
   disabled,
+  ...extras
 }: DragToRevealProps): JSX.Element {
   const [layout, setLayout] = useState(null);
   const animRadius = new Animated.Value(radius);
@@ -93,6 +94,8 @@ function DragToReveal({
   // XXX: next, track the amount of drag
   return (
     <Animated.View
+      pointerEvents="box-none"
+      {...extras}
       style={[styles.container, StyleSheet.flatten(style)]}
       onLayout={onLayout}
     >
