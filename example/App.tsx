@@ -10,7 +10,7 @@ import {
 import Animation from "react-native-lottie";
 import { useWindowDimensions } from "react-native-use-dimensions";
 
-import { DragToReveal } from "./lib";
+import { DragToReveal } from "react-native-drag-to-reveal";
 
 import Desk from "./assets/desk.json";
 import Office from "./assets/office.json";

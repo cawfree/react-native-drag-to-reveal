@@ -1,0 +1,37 @@
+{
+  "name": "react-native-drag-to-reveal",
+  "version": "0.0.1-alpha.0",
+  "description": "⚛️ 🖕 You drag, it reveals. (Android/iOS/Web/Expo)",
+  "main": "dist",
+  "repository": "https://github.com/cawfree/react-native-drag-to-reveal",
+  "author": "Alex Thomas (@cawfree) <hello@cawfree.com>",
+  "license": "MIT",
+  "private": false,
+  "keywords": [
+    "react-native",
+    "animated",
+    "reveal"
+  ],
+  "scripts": {
+    "build": "yarn ; babel src --plugins @babel/plugin-transform-typescript --extensions '.ts,.tsx' --out-dir dist ; rm -rf node_modules",
+    "prettify": "yarn prettier --write '**/*.tsx|**/*.ts'",
+    "lint": "eslint --fix --ext .ts,.tsx ./src",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-transform-typescript": "^7.12.1",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-react": "^7.12.5",
+    "@babel/preset-typescript": "^7.12.1",
+    "husky": "^4.3.0",
+    "jest": "^26.6.2",
+    "leasot": "^11.4.0",
+    "prettier": "^2.1.2",
+    "prop-types": "^15.7.2",
+    "react": "^17.0.1",
+    "react-native": "^0.63.3"
+  }
+}
