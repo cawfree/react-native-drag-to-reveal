@@ -1,5 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, ScrollView, View, TouchableOpacity, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  Animated,
+  View,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import Animation from "react-native-lottie";
 import { useWindowDimensions } from "react-native-use-dimensions";
 
@@ -30,8 +37,9 @@ export default function App() {
         onChange={onChange}
         radius={radius}
         maxRadius={radius + 1000}
-        renderChildren={() => (
+        renderChildren={({ open, progress }) => (
           <ScrollView
+            pointerEvents={open ? "auto" : "none"}
             style={[
               StyleSheet.absoluteFill,
               { backgroundColor: "purple" },
@@ -46,15 +54,17 @@ export default function App() {
               }}
             >
               <TouchableOpacity onPress={() => onChange(false)}>
-                <Animation
-                  style={{
-                    width,
-                    height: width,
-                  }}
-                  source={Office}
-                  autoPlay
-                  loop
-                />
+                <Animated.View style={{ opacity: progress }}>
+                  <Animation
+                    style={{
+                      width,
+                      height: width,
+                    }}
+                    source={Office}
+                    autoPlay
+                    loop
+                  />
+                </Animated.View>
               </TouchableOpacity>
             </View>
           </ScrollView>

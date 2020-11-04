@@ -16,7 +16,7 @@ export type DragToRevealProps = {
     readonly x: number;
     readonly y: number;
   };
-  readonly renderChildren: ({ open: boolean }) => JSX.Element;
+  readonly renderChildren: ({ open: boolean, progress: Animated }) => JSX.Element;
   readonly open: boolean;
   readonly onChange: (open: boolean) => unknown;
   readonly disabled: boolean;
@@ -88,6 +88,8 @@ function DragToReveal({
     setLayout(layout);
   }, [setLayout]);
 
+  const progress = Animated.divide(currentRadius, maxRadius);
+
   // XXX: next, track the amount of drag
   return (
     <Animated.View
@@ -136,7 +138,7 @@ function DragToReveal({
               { translateY: Animated.multiply(clampedExtraRadius, 1)},
             ],
           }}
-          children={renderChildren({ open: false })}
+          children={renderChildren({ open, progress })}
         />
       </Animated.View>
     </Animated.View>
@@ -162,7 +164,7 @@ DragToReveal.defaultProps = {
   radius: 55,
   maxRadius: 100,
   origin: { x: 0, y: 0 },
-  renderChildren: ({ open }) => null,
+  renderChildren: ({ open, progress }) => null,
   open: false,
   onChange: () => null,
   disabled: false,
