@@ -1,54 +1,74 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  Animated,
+  View,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import Animation from "react-native-lottie";
 import { useWindowDimensions } from "react-native-use-dimensions";
 
-import { DragToReveal } from "./lib";
+import { DragToReveal } from "react-native-drag-to-reveal";
 
 import Desk from "./assets/desk.json";
 import Office from "./assets/office.json";
 
 export default function App() {
   const { width, height } = useWindowDimensions();
-  const [value, onChange] = useState<boolean>(false);
-  const [absoluteFill] = useState<ViewStyle>(() => ({
-    height,
-    overflow: "hidden",
-    position: "absolute",
-    width,
-  }));
-  const renderChildren = useCallback(({ open }) => (
-    <View
-      style={{
-        ...absoluteFill,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#508AA3",
-      }}
-    >
-      <Animation
-        style={absoluteFill}
-        source={Desk}
-        autoPlay
-        loop
-      />
-    </View>
-  ), []);
+  const [open, onChange] = useState<boolean>(true);
+  const radius = 100;
   return (
-    <View style={absoluteFill}>
+    <View style={StyleSheet.absoluteFill}>
       <Animation
-        style={absoluteFill}
-        source={Office}
-        autoPlay
+        source={Desk}
+        style={StyleSheet.absoluteFill}
         loop
+        autoPlay
       />
       <DragToReveal
-        style={absoluteFill}
-        radius={100}
-        value={value}
+        origin={{
+          x: -radius,
+          y: -radius + height,
+        }}
+        disabled={open}
+        open={open}
         onChange={onChange}
-        origin={{ x: width, y: 0 }}
-        renderChildren={renderChildren}
+        radius={radius}
+        maxRadius={radius + 1000}
+        renderChildren={({ open, progress }) => (
+          <ScrollView
+            pointerEvents={open ? "auto" : "none"}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "purple" },
+            ]}
+          >
+            <View
+              style={{
+                width,
+                height,
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <TouchableOpacity onPress={() => onChange(false)}>
+                <Animated.View style={{ opacity: progress }}>
+                  <Animation
+                    style={{
+                      width,
+                      height: width,
+                    }}
+                    source={Office}
+                    autoPlay
+                    loop
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        )}
       />
     </View>
   );
