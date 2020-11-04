@@ -1,128 +1,109 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 import {
-  Platform,
   Animated,
   StyleSheet,
   ViewStyle,
   PanResponder,
-  Easing,
-  EasingFunction,
+  PixelRatio,
 } from "react-native";
 
 export type DragToRevealProps = {
   readonly style: ViewStyle;
   readonly radius: number;
-  readonly revealRadius: number;
+  readonly maxRadius: number;
   readonly origin: {
     readonly x: number;
     readonly y: number;
   };
-  readonly value: boolean;
-  readonly onChange: (value: boolean) => void;
-  readonly duration: number;
   readonly renderChildren: ({ open: boolean }) => JSX.Element;
-};
-
-// https://stackoverflow.com/a/63759194/1701465
-function abs(a) {
-  const b = Animated.multiply(a, -1);
-  const clampedA = Animated.diffClamp(a, 0, Number.MAX_SAFE_INTEGER);
-  const clampedB = Animated.diffClamp(b, 0, Number.MAX_SAFE_INTEGER);
-
-  return Animated.add(clampedA, clampedB);
+  readonly open: boolean;
+  readonly onChange: (open: boolean) => unknown;
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "red",
   },
-  noOverflow: { overflow: "hidden" },
+});
+
+const defaultDrag = Object.freeze({
+  x: 0,
+  y: 0,
 });
 
 function DragToReveal({
   style,
-  radius,
-  revealRadius,
   origin,
-  value,
-  onChange,
-  duration,
+  radius, // minimum radius
+  maxRadius, // maximum radius
   renderChildren,
-}): JSX.Element {
-  const [animDrag] = useState(() => new Animated.ValueXY({
-    x: 0,
-    y: 0,
-  }));
+  open,
+  onChange,
+}: DragToRevealProps): JSX.Element {
   const [layout, setLayout] = useState(null);
-  const shouldAnimateToValue = useCallback((open) => {
-    const toValue = open ? revealRadius : 0;
-    const easing = open ? Easing.in : Easing.in;
-    const target = open ? revealRadius : radius;
-    animDrag.flattenOffset();
-    const { x, y } = animDrag;
-    const h = Math.sqrt(Math.pow(x.__getValue(), 2) + Math.pow(y.__getValue(), 2));
-    const md = h * 0.5 / target;
-    const delta = Math.abs(md);
-    Animated.parallel([
-      Animated.timing(x, { toValue, easing, duration, useNativeDriver: false }),
-      Animated.timing(y, { toValue, easing, duration, useNativeDriver: false }),
-    ]).start();
-  }, [
-    animDrag,
-    revealRadius,
-    radius,
-    duration,
-  ]);
+  const animRadius = new Animated.Value(radius);
+  const [animDrag] = useState(() => new Animated.ValueXY(defaultDrag));
+  // TODO: init for open
+  const [animExtraRadius] = useState(() => new Animated.Value(0));
 
-  const animDistance = Animated.add(
-    Animated.multiply(animDrag.x, 2.0),
-    Animated.multiply(animDrag.y, 2.0),
+  /* additional radius within bounds */
+  const clampedExtraRadius = Animated.diffClamp(
+    animExtraRadius,
+    0,
+    maxRadius - radius,
   );
 
+  const currentRadius = Animated.add(animRadius, clampedExtraRadius);
+
+  const shouldAnimate = useCallback((open) => {
+    Animated.timing(animExtraRadius, {
+      toValue: open ? maxRadius - radius : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [animExtraRadius]);
+
   useEffect(() => {
-    shouldAnimateToValue(!!value);
-  }, [value]);
+    shouldAnimate(open);
+  }, [open, shouldAnimate]);
 
   const shouldBeOpen = useCallback(() => {
-    const x = abs(animDistance).__getValue();
-    return value ? x > revealRadius * 4 : x > revealRadius;
-  }, [animDistance, layout, radius, value]);
+    const c = currentRadius.__getValue();
+    const threshold = radius + (maxRadius - radius) * 0.5;
+    return c > threshold;
+  }, [currentRadius, maxRadius, radius]);
 
-  const onRelease = useCallback(({ nativeEvent: { pageX, pageY } }) => {
+  const onRelease = useCallback(() => {
     const shouldOpen = shouldBeOpen();
-    if (shouldOpen !== value) {
-      return onChange(shouldOpen);
+    if (shouldOpen === open) {
+      return shouldAnimate(open);
     }
-    return shouldAnimateToValue(shouldOpen);
-  }, [animDrag, layout, onChange, shouldBeOpen, value, shouldAnimateToValue]);
+    return onChange(shouldOpen);
+  }, [animDrag, shouldBeOpen, shouldAnimate, open, onChange]);
 
-  const onLayout = useCallback(
-    ({ nativeEvent: { layout } }) => setLayout(layout),
-    [setLayout]
-  ); 
+  const onLayout = useCallback(({ nativeEvent: { layout } }) => {
+    setLayout(layout);
+  }, [setLayout]);
 
-  const clampedDistance = Animated.diffClamp(animDistance, radius, Number.MAX_SAFE_INTEGER);
-  const rootRadius = Animated.add(clampedDistance, radius);
-  const renderRadius = Animated.add(clampedDistance, radius * 2);
-  const animOffset = Animated.multiply(renderRadius, -0.5);
-
+  // XXX: next, track the amount of drag
   return (
     <Animated.View
-      style={[
-        styles.container,
-        StyleSheet.flatten(style),
-      ]}
+      style={[styles.container, StyleSheet.flatten(style)]}
       onLayout={onLayout}
     >
+      {/* radius */}
       <Animated.View
         {...PanResponder.create({
-          onStartShouldSetPanResponder: e => {
-            animDrag.extractOffset();
-            return true;
-          },
+          onStartShouldSetPanResponder: e => true,
           onPanResponderMove: (e, gesture) => {
-            const { x, y } = animDrag.__getValue();
+            const { dy } = gesture;
+            const ady = Math.abs(dy);
+            const dyd = open ? -1 * ady : ady;
+            animExtraRadius.setValue(
+              Math.max(Math.min(maxRadius - radius, animExtraRadius.__getValue() + dyd / PixelRatio.get()), 0),
+            );
             return Animated.event([null, {
               dx: animDrag.x,
               dy: animDrag.y,
@@ -131,36 +112,31 @@ function DragToReveal({
           onPanResponderRelease: onRelease,
           onPanResponderTerminate: onRelease,
         }).panHandlers}
-        style={[
-          styles.noOverflow,
-          {
-            transform: [
-              { translateX: Animated.add(animOffset, origin.x) },
-              { translateY: Animated.add(animOffset, origin.y) },
-            ],
-          },
-          {
-            width: renderRadius,
-            height: renderRadius,
-            borderRadius: abs(rootRadius),
-          },
-        ]}
+        style={{
+          transform: [
+            { translateX: origin.x },
+            { translateY: origin.y },
+            { translateX: Animated.multiply(clampedExtraRadius, -1)},
+            { translateY: Animated.multiply(clampedExtraRadius, -1)},
+          ],
+          width: Animated.multiply(currentRadius, 2),
+          height: Animated.multiply(currentRadius, 2),
+          borderRadius: currentRadius,
+          overflow: "hidden",
+        }}
       >
-        {!!layout && (
-          <Animated.View
-            style={{
-              ...layout,
-              transform: [
-                { translateX: Animated.multiply(animOffset, -1) },
-                { translateY: Animated.multiply(animOffset, -1) },
-                { translateX: -origin.x },
-                { translateY: -origin.y },
-              ],
-            }}
-          >
-            {renderChildren({ open: value })}
-          </Animated.View>
-        )}
+        <Animated.View
+          style={{
+            ...layout,
+            transform: [
+              { translateX: -1 * origin.x },
+              { translateY: -1 * origin.y },
+              { translateX: Animated.multiply(clampedExtraRadius, 1)},
+              { translateY: Animated.multiply(clampedExtraRadius, 1)},
+            ],
+          }}
+          children={renderChildren({ open: false })}
+        />
       </Animated.View>
     </Animated.View>
   );
@@ -169,26 +145,24 @@ function DragToReveal({
 DragToReveal.propTypes = {
   style: PropTypes.any,
   radius: PropTypes.number,
-  revealRadius: PropTypes.number,
+  maxRadius: PropTypes.number,
   origin: PropTypes.shape({
     x: PropTypes.number,
     y: PropTypes.number,
   }),
-  value: PropTypes.bool,
-  onChange: PropTypes.func,
-  duration: PropTypes.number,
   renderChildren: PropTypes.func,
+  open: PropTypes.bool,
+  onChange: PropTypes.func,
 };
 
 DragToReveal.defaultProps = {
   style: {},
-  radius: 50,
-  revealRadius: 500,
+  radius: 55,
+  maxRadius: 100,
   origin: { x: 0, y: 0 },
-  value: false,
+  renderChildren: ({ open }) => null,
+  open: false,
   onChange: () => null,
-  duration: 200,
-  renderChildren: () => null,
 };
 
 export default DragToReveal;

@@ -1,1 +1,1 @@
-export * from "./components";
+export { DragToReveal } from "./components";

@@ -10,45 +10,28 @@ import Office from "./assets/office.json";
 
 export default function App() {
   const { width, height } = useWindowDimensions();
-  const [value, onChange] = useState<boolean>(false);
-  const [absoluteFill] = useState<ViewStyle>(() => ({
-    height,
-    overflow: "hidden",
-    position: "absolute",
-    width,
-  }));
-  const renderChildren = useCallback(({ open }) => (
-    <View
-      style={{
-        ...absoluteFill,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#508AA3",
-      }}
-    >
-      <Animation
-        style={absoluteFill}
-        source={Desk}
-        autoPlay
-        loop
-      />
-    </View>
-  ), []);
+  const [open, onChange] = useState<boolean>(true);
+  const radius = 100;
+  // origin is literally the starting position
   return (
-    <View style={absoluteFill}>
-      <Animation
-        style={absoluteFill}
-        source={Office}
-        autoPlay
-        loop
-      />
+    <View style={StyleSheet.absoluteFill}>
       <DragToReveal
-        style={absoluteFill}
-        radius={100}
-        value={value}
+        origin={{
+          x: -radius,
+          y: -radius + height,
+        }}
+        open={open}
         onChange={onChange}
-        origin={{ x: width, y: 0 }}
-        renderChildren={renderChildren}
+        radius={radius}
+        maxRadius={radius + 1000}
+        renderChildren={() => (
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "orange",
+            }}
+          />
+        )}
       />
     </View>
   );
