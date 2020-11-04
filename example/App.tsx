@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, ViewStyle } from 'react-native';
 import Animation from "react-native-lottie";
 import { useWindowDimensions } from "react-native-use-dimensions";
 
@@ -12,25 +12,52 @@ export default function App() {
   const { width, height } = useWindowDimensions();
   const [open, onChange] = useState<boolean>(true);
   const radius = 100;
-  // origin is literally the starting position
   return (
     <View style={StyleSheet.absoluteFill}>
+      <Animation
+        source={Desk}
+        style={StyleSheet.absoluteFill}
+        loop
+        autoPlay
+      />
       <DragToReveal
         origin={{
           x: -radius,
           y: -radius + height,
         }}
+        disabled={open}
         open={open}
         onChange={onChange}
         radius={radius}
         maxRadius={radius + 1000}
         renderChildren={() => (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "orange",
-            }}
-          />
+          <ScrollView
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "purple" },
+            ]}
+          >
+            <View
+              style={{
+                width,
+                height,
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <TouchableOpacity onPress={() => onChange(false)}>
+                <Animation
+                  style={{
+                    width,
+                    height: width,
+                  }}
+                  source={Office}
+                  autoPlay
+                  loop
+                />
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         )}
       />
     </View>

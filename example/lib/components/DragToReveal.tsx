@@ -19,12 +19,12 @@ export type DragToRevealProps = {
   readonly renderChildren: ({ open: boolean }) => JSX.Element;
   readonly open: boolean;
   readonly onChange: (open: boolean) => unknown;
+  readonly disabled: boolean;
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "red",
   },
 });
 
@@ -41,6 +41,7 @@ function DragToReveal({
   renderChildren,
   open,
   onChange,
+  disabled,
 }: DragToRevealProps): JSX.Element {
   const [layout, setLayout] = useState(null);
   const animRadius = new Animated.Value(radius);
@@ -96,7 +97,7 @@ function DragToReveal({
       {/* radius */}
       <Animated.View
         {...PanResponder.create({
-          onStartShouldSetPanResponder: e => true,
+          onStartShouldSetPanResponder: e => !disabled,
           onPanResponderMove: (e, gesture) => {
             const { dy } = gesture;
             const ady = Math.abs(dy);
@@ -153,6 +154,7 @@ DragToReveal.propTypes = {
   renderChildren: PropTypes.func,
   open: PropTypes.bool,
   onChange: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 DragToReveal.defaultProps = {
@@ -163,6 +165,7 @@ DragToReveal.defaultProps = {
   renderChildren: ({ open }) => null,
   open: false,
   onChange: () => null,
+  disabled: false,
 };
 
 export default DragToReveal;
