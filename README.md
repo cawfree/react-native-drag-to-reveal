@@ -19,6 +19,8 @@ import { DragToReveal } from "react-native-drag-to-reveal";
 export default function App() {
   const { width, height } = useWindowDimensions();
   const [open, onChange] = useState<boolean>(true);
+  const radius = 100;
+  const maxRadius = 2 * 100;
   return (
     <DragToReveal
       origin={{
@@ -27,8 +29,8 @@ export default function App() {
       }}
       open={open}
       onChange={onChange}
-      radius={100}
-      maxRadius={200}
+      radius={radius}
+      maxRadius={maxRadius}
       renderChildren={({ open, progress }) => (
         <>
           {/* revealed content here */}
