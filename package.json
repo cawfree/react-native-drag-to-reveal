@@ -1,6 +1,6 @@
 {
   "name": "react-native-drag-to-reveal",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "description": "⚛️ 🖕 You drag, it reveals. (Android/iOS/Web/Expo)",
   "main": "dist",
   "repository": "https://github.com/cawfree/react-native-drag-to-reveal",
